@@ -9,3 +9,6 @@ challenge2_model/extra/*
 !challenge2_model/extra/README.md
 !challenge2_model/extra/branchen.csv
 features/
+challenge2_model/forecast/
+website/data/
+.claude/

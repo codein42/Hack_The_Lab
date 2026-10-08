@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab Planner</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="data/data.js"></script>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">Lab Planner <small>team_42_wolf · Hack the Lab 2026</small></div>
+    <nav id="nav">
+      <button data-tab="dash" class="on">Dashboard</button>
+      <button data-tab="admin">Admin</button>
+      <button data-tab="sales">Sales</button>
+      <button data-tab="whatif">What-if</button>
+    </nav>
+    <div class="spacer"></div>
+    <div class="muted small" id="asof"></div>
+  </div>
+</header>
+
+<main>
+<!-- ============================================================ DASHBOARD -->
+<section class="tab on" id="dash">
+  <h2>Good morning</h2>
+  <p class="sub">The forecast shows what's coming, the calendar shows if we can handle it, and sales acts early on customers.</p>
+  <div class="grid kpis" id="kpis"></div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>Admin – today</h3><ul class="brief" id="briefAdmin"></ul></div>
+    <div class="card"><h3>Sales – today</h3><ul class="brief" id="briefSales"></ul></div>
+  </div>
+
+  <h2>Forecast</h2>
+  <div class="grid g2">
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <h3 style="margin:0">Calibrations per month</h3>
+        <select id="segSel"></select>
+      </div>
+      <div class="chartbox"><canvas id="chMonthly"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Volume at risk by industry <span class="muted small">(next 12 months, ranked)</span></h3>
+      <div class="chartbox"><canvas id="chRisk"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Instruments due vs expected back</h3>
+      <div class="chartbox"><canvas id="chDue"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>2027 lab load, all labs per day</h3>
+      <div class="chartbox"><canvas id="chDaily"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ADMIN -->
+<section class="tab" id="admin">
+  <h2>Capacity calendar 2027</h2>
+  <p class="sub">Forecast workload ÷ available hours per lab and week. Click a cell for details and suggested fixes.</p>
+  <div class="card">
+    <div class="legend">
+      <span style="--c:var(--ok)">under 85 %</span><span style="--c:var(--warn)">85–100 %</span>
+      <span style="--c:var(--bad)">over 100 %</span><span style="--c:var(--none)">no capacity data</span>
+    </div>
+    <div class="heat" id="heatAdmin"></div>
+  </div>
+  <div class="card" id="cellDetail" style="margin-top:16px"><span class="muted">Click a week above.</span></div>
+
+  <h2>Vacation &amp; skills planner</h2>
+  <p class="sub">See vacation and qualifications weeks ahead and fix gaps before they hit. <span class="sample">Sample roster: the DB has hours per lab, not per person. Head count = planned FTE, vacation spread like each lab's real 2024–26 vacation hours.</span></p>
+  <div class="grid g2">
+    <div class="card">
+      <div class="row"><label class="f">Lab<select id="vacLab"></select></label></div>
+      <div class="vac heat" id="vacGrid"></div>
+      <div class="legend"><span style="--c:var(--accent)">on vacation</span><span style="--c:var(--bad)">busy week (≥ 85 %)</span></div>
+    </div>
+    <div class="card">
+      <h3>Early warnings</h3>
+      <div class="scroll" style="max-height:420px"><ul class="brief" id="vacWarn"></ul></div>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h3>Skills matrix</h3>
+      <div class="scroll" style="max-height:380px" id="skills"></div>
+    </div>
+    <div class="card">
+      <h3>Qualifications expiring in the next 120 days</h3>
+      <div class="scroll" style="max-height:380px" id="expiring"></div>
+    </div>
+  </div>
+
+  <h2>Own equipment &amp; batching</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Best maintenance windows <span class="muted small">(quietest 2027 weeks per lab)</span></h3>
+      <div id="maint"></div>
+    </div>
+    <div class="card">
+      <h3>Bundle into one pickup / visit</h3>
+      <p class="sub small">Customers with many instruments due or overdue: one combined job saves handling and travel.</p>
+      <div class="scroll" style="max-height:360px" id="batch"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ SALES -->
+<section class="tab" id="sales">
+  <h2>Seasonal &amp; recurring demand radar</h2>
+  <p class="sub">Customers who send in the same month every year (2024–2026 history). Contact them about 7 weeks ahead to confirm, pre-book a lab slot and lock the price.</p>
+  <div class="card">
+    <div class="row">
+      <input type="search" id="recQ" placeholder="Search customer / industry / group">
+      <select id="recMonth"></select>
+      <select id="recKind"><option value="">All patterns</option><option>yearly recurring</option><option>seasonal peak</option></select>
+      <select id="recStatus"><option value="">Any status</option><option>not contacted</option><option>contacted</option><option>confirmed</option><option>booked</option></select>
+      <span class="spacer"></span><span class="muted small" id="recCount"></span>
+    </div>
+    <div class="scroll"><table id="recTable"></table></div>
+  </div>
+
+  <h2>Customers at risk, and why</h2>
+  <p class="sub">Churn model (AUC <b id="aucTxt"></b> on unseen months). One suggested action per customer.</p>
+  <div class="card">
+    <div class="row">
+      <input type="search" id="riskQ" placeholder="Search customer / industry">
+      <select id="riskAction"></select>
+      <select id="riskInd"></select>
+      <label class="small muted"><input type="checkbox" id="riskContract"> contract candidates only</label>
+    </div>
+    <div class="scroll"><table id="riskTable"></table></div>
+  </div>
+
+  <h2>Quote: priority &amp; price</h2>
+  <p class="sub">Prices come from lab capacity: urgent orders in a full week pay a surcharge, flexible orders in a quiet week get a discount. Shown as % of list price.</p>
+  <div class="grid g2">
+    <div class="card">
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px">
+        <label class="f">Customer<input type="text" id="qCust" list="custList" placeholder="customer no."></label>
+        <label class="f">Instrument group<select id="qGroup"></select></label>
+        <label class="f">Quantity<input type="number" id="qQty" value="20" min="1"></label>
+        <label class="f">Arrival week (2027)<select id="qWeek"></select></label>
+        <label class="f">Customer wants it back in<select id="qLead">
+          <option value="5">5 days (express)</option><option value="16" selected>16 days (standard)</option><option value="30">30+ days (flexible)</option>
+        </select></label>
+      </div>
+      <datalist id="custList"></datalist>
+      <div id="qWarn"></div>
+    </div>
+    <div class="card"><div id="qOut"></div></div>
+  </div>
+</section>
+
+<!-- ============================================================ WHAT-IF -->
+<section class="tab" id="whatif">
+  <h2>What-if simulator</h2>
+  <p class="sub">Move the sliders and see the effect on 2027 lab load right away.</p>
+  <div class="card">
+    <div class="sliders">
+      <label class="f">Demand change <span class="val" id="wDemandV"></span><input type="range" id="wDemand" min="-30" max="30" value="0"></label>
+      <label class="f">Hire technicians <span class="val" id="wHireV"></span><input type="range" id="wHire" min="0" max="5" value="0"><select id="wHireLab"></select></label>
+      <label class="f">Machine down (weeks) <span class="val" id="wDownV"></span><input type="range" id="wDown" min="0" max="8" value="0"><select id="wDownLab"></select></label>
+      <label class="f">Shift summer vacation to quiet months <span class="val" id="wVacV"></span><input type="range" id="wVac" min="0" max="100" step="10" value="0"></label>
+      <label class="f">Lose a top customer<select id="wLose"><option value="">none</option></select></label>
+      <div><button class="btn" id="wReset">Reset</button></div>
+    </div>
+  </div>
+  <div class="grid kpis" id="wKpis" style="margin-top:16px"></div>
+  <div class="card" style="margin-top:16px">
+    <div class="legend">
+      <span style="--c:var(--ok)">under 85 %</span><span style="--c:var(--warn)">85–100 %</span><span style="--c:var(--bad)">over 100 %</span>
+    </div>
+    <div class="heat" id="heatWhatif"></div>
+  </div>
+</section>
+</main>
+
+<dialog id="dlg">
+  <h3 id="dlgTitle">Email draft</h3>
+  <textarea id="dlgText"></textarea>
+  <div class="row" style="justify-content:flex-end;margin:10px 0 0">
+    <button class="btn" id="dlgCopy">Copy</button>
+    <button class="btn p" id="dlgClose">Close</button>
+  </div>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>
