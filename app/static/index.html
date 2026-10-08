@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PeCal Smart Forecast</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="aurora"></div>
+
+<!-- macOS-style titlebar -->
+<header class="titlebar">
+  <div class="traffic">
+    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+  </div>
+  <div class="app-title">PeCal Smart Forecast</div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="challenge1">Task 1 · Capacity</button>
+    <button class="tab" data-tab="challenge2">Task 2 · Sales</button>
+  </nav>
+  <div class="clock" id="clock">--:--</div>
+</header>
+
+<main>
+<!-- ================= TASK 1 ================= -->
+<section class="pane active" id="challenge1">
+  <div class="kpi-row">
+    <div class="kpi glass"><span class="kpi-val" id="k-total">—</span><span class="kpi-lbl">Total devices</span></div>
+    <div class="kpi glass"><span class="kpi-val" id="k-dated">—</span><span class="kpi-lbl">With due date</span></div>
+    <div class="kpi glass"><span class="kpi-val" id="k-est">—</span><span class="kpi-lbl">Estimated by group</span></div>
+    <div class="kpi glass warn"><span class="kpi-val" id="k-over">—</span><span class="kpi-lbl">Overdue</span></div>
+    <div class="kpi glass danger"><span class="kpi-val" id="k-awral">—</span><span class="kpi-lbl">Bottlenecks (3 mo.)</span></div>
+    <div class="kpi glass"><span class="kpi-val" id="k-util">—</span><span class="kpi-lbl">Average load</span></div>
+  </div>
+
+  <div class="grid two">
+    <div class="win glass">
+      <div class="win-bar"><span class="win-title">Load forecast · MESSRAUM × month</span>
+        <div class="seg" id="horizon-seg">
+          <button data-m="3">3 mo</button><button data-m="6" class="on">6 mo</button><button data-m="16">16 mo</button>
+        </div>
+      </div>
+      <div class="win-body"><canvas id="fc-chart" height="230"></canvas></div>
+    </div>
+
+    <div class="win glass">
+      <div class="win-bar"><span class="win-title">Heatmap · utilization %</span></div>
+      <div class="win-body"><div class="heat" id="heat"></div></div>
+    </div>
+  </div>
+
+  <div class="grid two">
+    <div class="win glass">
+      <div class="win-bar"><span class="win-title">Top bottlenecks → prevention advice</span></div>
+      <div class="win-body table-wrap">
+        <table id="bn-table">
+          <thead><tr><th>Lab</th><th>Month</th><th>Load</th><th>Shift to</th><th>Recommendation</th><th>Priority</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="win glass">
+      <div class="win-bar"><span class="win-title">Capacity vs load (Soll-Kapa)</span></div>
+      <div class="win-body"><canvas id="cap-chart" height="240"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TASK 2 ================= -->
+<section class="pane" id="challenge2">
+  <div class="kpi-row">
+    <div class="kpi glass ok"><span class="kpi-val" id="c-active">—</span><span class="kpi-lbl">Active</span></div>
+    <div class="kpi glass"><span class="kpi-val" id="c-sleep">—</span><span class="kpi-lbl">Sleeping</span></div>
+    <div class="kpi glass danger"><span class="kpi-val" id="c-lost">—</span><span class="kpi-lbl">Churned</span></div>
+    <div class="kpi glass"><span class="kpi-val" id="c-total">—</span><span class="kpi-lbl">Total customers</span></div>
+    <div class="kpi glass accent"><span class="kpi-val small" id="c-top">—</span><span class="kpi-lbl">Top industry</span></div>
+  </div>
+
+  <div class="grid two">
+    <div class="win glass hero">
+      <div class="win-bar"><span class="win-title">🎯 Who to call</span>
+        <div class="win-tools">
+          <div class="seg" id="period-seg">
+            <button data-p="day" class="on">Day</button><button data-p="week">Week</button><button data-p="month">Month</button>
+          </div>
+          <button class="btn-export" id="export-btn" title="Export list to Excel">⬇ Export Excel</button>
+        </div>
+      </div>
+      <div class="win-body" id="today-list"></div>
+    </div>
+
+    <div class="win glass">
+      <div class="win-bar"><span class="win-title">RFM segmentation · Recency × Frequency</span></div>
+      <div class="win-body"><canvas id="rfm-chart" height="260"></canvas></div>
+    </div>
+  </div>
+
+  <div class="grid two">
+    <div class="win glass">
+      <div class="win-bar"><span class="win-title">Churn by month</span></div>
+      <div class="win-body"><canvas id="churn-chart" height="230"></canvas></div>
+    </div>
+
+    <div class="win glass">
+      <div class="win-bar"><span class="win-title">Order volume forecast</span></div>
+      <div class="win-body"><canvas id="vol-chart" height="230"></canvas></div>
+    </div>
+  </div>
+
+  <div class="win glass">
+    <div class="win-bar"><span class="win-title">🏭 Industry opportunities · upsell</span></div>
+    <div class="win-body table-wrap">
+      <table id="gap-table">
+        <thead><tr><th>Industry</th><th>Device type</th><th>Prevalence</th><th>Customers without</th><th>Examples</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</main>
+
+<script src="/static/vendor/chart.umd.min.js"></script>
+<script src="/static/vendor/xlsx.full.min.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>
