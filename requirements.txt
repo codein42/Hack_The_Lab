@@ -1,0 +1,7 @@
+pandas
+pyarrow
+duckdb
+scikit-learn
+sentence-transformers
+pymssql
+ollama
